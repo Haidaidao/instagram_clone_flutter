@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class LikeAnimation extends StatefulWidget {
   final Widget child;
   final bool isAnimating;
-  final Duration duration;
+  final Duration duration; // thực hiện animation sau duration giây
   final Function? onEnd;
   final bool smallLike;
   const LikeAnimation({
@@ -48,11 +48,10 @@ class _LikeAnimationState extends State<LikeAnimation>
       await controller.forward();
       await controller.reverse();
       await Future.delayed(
-        const Duration(milliseconds: 200),
+        const Duration(milliseconds: 20), // Sau 20s hiện trái tim khi double tap
       );
 
       if (widget.onEnd != null) {
-        print("hello");
         widget.onEnd!();
       }
     }

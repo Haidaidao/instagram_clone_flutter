@@ -87,7 +87,7 @@ class _SignupScreenState extends State<SignupScreen> {
         width: double.infinity,
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 48, 16, keyboardSpace + 16),
+            padding: EdgeInsets.fromLTRB(16, 48, 16, keyboardSpace),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [

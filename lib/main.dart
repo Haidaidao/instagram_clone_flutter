@@ -44,7 +44,6 @@ class MyApp extends StatelessWidget {
               builder: (ctx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
                   if (snapshot.hasData) {
-                    print("hashdhsa");
                     return ResponsiveLayout(
                         webScreenLayout: WebScreenLayout(),
                         mobileScreenLayout: MobileScreenLayout());

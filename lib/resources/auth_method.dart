@@ -28,7 +28,7 @@ class AuthMethods {
     required String bio,
     required Uint8List file,
   }) async {
-    String res = "Some error Occurred";
+    String res = "Some error occurred";
     try {
       if (email.isNotEmpty ||
           password.isNotEmpty ||
@@ -85,5 +85,9 @@ class AuthMethods {
     }
 
     return res;
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
 }

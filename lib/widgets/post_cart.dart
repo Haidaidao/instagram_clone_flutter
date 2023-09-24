@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/providers/user_provider.dart';
+import 'package:instagram_clone/resources/firestore_method.dart';
+import 'package:instagram_clone/screens/comments_screen.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
 
@@ -18,12 +22,35 @@ class PostCard extends ConsumerStatefulWidget {
 }
 
 class _PostCardState extends ConsumerState<PostCard> {
+  bool isLikeAnimating = false;
+  int commentLength = 0;
+
+  @override
+  void initState() {
+    // TODO: implement dispose
+    super.initState();
+    getComments();
+  }
+
+  void getComments() async {
+    try {
+      QuerySnapshot snap = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.snap['postId'])
+          .collection('comments')
+          .get();
+
+      commentLength = snap.docs.length;
+    } catch (e) {
+      showSnackBar(e.toString(), context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
     ref.read(UserProvider.notifier).getUserFromData();
     User user = ref.watch(UserProvider);
-
-    bool isLikeAnimating = false;
 
     return Container(
       color: mobileBackgroundColor,
@@ -65,7 +92,11 @@ class _PostCardState extends ConsumerState<PostCard> {
                                     'Delete',
                                   ]
                                       .map((e) => InkWell(
-                                            onTap: () {},
+                                            onTap: () async {
+                                              await FireStoreMethod().deletePost(
+                                                  widget.snap['postId']);
+                                              Navigator.of(context).pop();
+                                            },
                                             child: Container(
                                               padding: EdgeInsets.symmetric(
                                                   vertical: 12, horizontal: 16),
@@ -76,14 +107,16 @@ class _PostCardState extends ConsumerState<PostCard> {
                                 ),
                               ));
                     },
-                    icon: Icon(Icons.more_vert))
+                    icon: Icon(Icons.more_vert)
+                )
               ],
             ),
           ),
 
-          //Image section
           GestureDetector(
-            onDoubleTap: () {
+            onDoubleTap: () async {
+              await FireStoreMethod().likePost(
+                  widget.snap['postId'], user.uid, widget.snap['likes']);
               setState(() {
                 isLikeAnimating = true;
               });
@@ -101,7 +134,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                 ),
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  opacity: isLikeAnimating==true ? 1 : 0,
+                  opacity: isLikeAnimating == true ? 1 : 0,
                   child: LikeAnimation(
                     isAnimating: isLikeAnimating,
                     duration: const Duration(
@@ -112,31 +145,46 @@ class _PostCardState extends ConsumerState<PostCard> {
                         isLikeAnimating = false;
                       });
                     },
-                    child: const Icon(
+                    child: widget.snap['likes'].contains(user.uid)
+                    ? const Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                      size: 100,
+                    )
+                    : const Icon(
                       Icons.favorite,
                       color: Colors.white,
                       size: 100,
-                    ),
+                    )
                   ),
                 ),
               ],
             ),
           ),
 
-          //Like Comment post
           Row(
             children: [
               LikeAnimation(
                 isAnimating: widget.snap['likes'].contains(user.uid),
                 smallLike: true,
                 child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.favorite,
-                      color: Colors.red,
-                    )),
+                    onPressed: () async {
+                      await FireStoreMethod().likePost(widget.snap['postId'],
+                          user.uid, widget.snap['likes']);
+                    },
+                    icon: widget.snap['likes'].contains(user.uid)
+                        ? Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                          )
+                        : Icon(
+                            Icons.favorite_border,
+                          )),
               ),
-              IconButton(onPressed: () {}, icon: Icon(Icons.comment_outlined)),
+              IconButton(
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => CommentsScreen(snap: widget.snap))),
+                  icon: Icon(Icons.comment_outlined)),
               IconButton(onPressed: () {}, icon: Icon(Icons.send)),
               Expanded(
                   child: Align(
@@ -147,8 +195,6 @@ class _PostCardState extends ConsumerState<PostCard> {
               ))
             ],
           ),
-
-          //Description and number of cmt
 
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16),
@@ -162,7 +208,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                         .subtitle2!
                         .copyWith(fontWeight: FontWeight.w800),
                     child: Text(
-                      '${widget.snap['likes'].length}',
+                      '${widget.snap['likes'].length} likes',
                       style: Theme.of(context).textTheme.bodyMedium,
                     )),
                 Container(
@@ -185,7 +231,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
-                      'View all 200 comments',
+                      'View all $commentLength comments',
                       style:
                           const TextStyle(fontSize: 16, color: secondaryColor),
                     ),
