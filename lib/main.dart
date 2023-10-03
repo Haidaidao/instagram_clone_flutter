@@ -23,7 +23,6 @@ void main() async {
             storageBucket: "instagram-clone-flutter-96395.appspot.com"));
   } else
     await Firebase.initializeApp();
-
   runApp(const ProviderScope(child: MyApp()));
 }
 

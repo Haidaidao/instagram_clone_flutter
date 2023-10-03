@@ -40,9 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (res == "Success") {
       Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => ResponsiveLayout(
-                        webScreenLayout: WebScreenLayout(),
-                        mobileScreenLayout: MobileScreenLayout())));
+        .pushReplacement(MaterialPageRoute(builder: (context) => MobileScreenLayout()));
     } else {
       showSnackBar(res, context);
     }
